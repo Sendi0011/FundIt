@@ -272,5 +272,92 @@ contract SpendAndSaveModuleTest is Test {
         vm.stopPrank();
     }
 
+    // ============ Auto-Save Execution Tests ============
+
+    function test_AutoDepositSpendAndSave_PercentageBased_Success() public {
+        _setupUser1WithSpendAndSave();
+        
+        uint256 spendAmount = 100 * 10**6; // 100 USDC
+        uint256 expectedSave = 10 * 10**6; // 10% = 10 USDC
+        bytes32 txHash = keccak256("tx1");
+        
+        uint256 vaultBalanceBefore = usdc.balanceOf(address(vault));
+        
+        vm.expectEmit(true, true, true, true);
+        emit AutoSaveTriggered(user1, spendAmount, expectedSave, block.timestamp, expectedSave, txHash);
+        
+        vm.prank(automationService);
+        spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash);
+        
+        uint256 vaultBalanceAfter = usdc.balanceOf(address(vault));
+        assertEq(vaultBalanceAfter - vaultBalanceBefore, expectedSave);
+        
+        // Verify stats
+        (uint256 totalAutoSaved, uint256 transactionCount,,,) = spendAndSave.getUserStats(user1);
+        assertEq(totalAutoSaved, expectedSave);
+        assertEq(transactionCount, 1);
+    }
+
+    function test_AutoDepositSpendAndSave_FixedAmount_Success() public {
+        vm.startPrank(user1);
+        
+        spendAndSave.linkVault(address(vault));
+        usdc.approve(address(spendAndSave), type(uint256).max);
+        
+        // Enable with fixed amount (5 USDC per transaction)
+        spendAndSave.enableSpendAndSave(
+            5 * 10**6,    // 5 USDC fixed
+            false,        // NOT percentage
+            MIN_THRESHOLD,
+            DAILY_CAP,
+            MONTHLY_CAP,
+            0
+        );
+        
+        vm.stopPrank();
+        
+        uint256 spendAmount = 100 * 10**6; // 100 USDC
+        uint256 expectedSave = 5 * 10**6; // 5 USDC fixed
+        bytes32 txHash = keccak256("tx2");
+        
+        vm.prank(automationService);
+        spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash);
+        
+        (uint256 totalAutoSaved,,,) = spendAndSave.getUserStats(user1);
+        assertEq(totalAutoSaved, expectedSave);
+    }
+
+    function test_AutoDepositSpendAndSave_SkipWhenBelowThreshold() public {
+        _setupUser1WithSpendAndSave();
+        
+        uint256 spendAmount = 5 * 10**6; // 5 USDC (below 10 USDC threshold)
+        bytes32 txHash = keccak256("tx3");
+        
+        vm.expectEmit(true, true, true, true);
+        emit AutoSaveSkipped(user1, spendAmount, "Below threshold", block.timestamp);
+        
+        vm.prank(automationService);
+        spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash);
+        
+        (uint256 totalAutoSaved,,,) = spendAndSave.getUserStats(user1);
+        assertEq(totalAutoSaved, 0);
+    }
+
+    function test_AutoDepositSpendAndSave_SkipWhenNotEnabled() public {
+        vm.startPrank(user1);
+        spendAndSave.linkVault(address(vault));
+        usdc.approve(address(spendAndSave), type(uint256).max);
+        vm.stopPrank();
+        
+        uint256 spendAmount = 100 * 10**6;
+        bytes32 txHash = keccak256("tx4");
+        
+        vm.expectEmit(true, true, true, true);
+        emit AutoSaveSkipped(user1, spendAmount, "Not enabled", block.timestamp);
+        
+        vm.prank(automationService);
+        spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash);
+    }
+
     
 }
