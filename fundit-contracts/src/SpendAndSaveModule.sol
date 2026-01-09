@@ -388,5 +388,145 @@ contract SpendAndSaveModule is
         }
     }
 
-    
+    // ============ View Functions ============
+
+    /**
+     * @notice Get user's complete configuration
+     */
+    function getUserConfig(address user) external view returns (SpendAndSaveConfig memory) {
+        return _userConfigs[user];
+    }
+
+    /**
+     * @notice Get user's linked vault
+     */
+    function getUserVault(address user) external view returns (address) {
+        return _userVaults[user];
+    }
+
+    /**
+     * @notice Check if Spend & Save is enabled
+     */
+    function isSpendAndSaveEnabled(address user) external view returns (bool) {
+        return _userConfigs[user].enabled;
+    }
+
+    /**
+     * @notice Get remaining daily cap (accounts for time-based reset)
+     */
+    function getRemainingDailyCap(address user) external view returns (uint256) {
+        SpendAndSaveConfig memory config = _userConfigs[user];
+        if (!config.enabled) return 0;
+        
+        if (SpendAndSaveLib.needsDailyReset(config.lastResetDay)) {
+            return config.dailyCap;
+        }
+        
+        if (config.dailySaved >= config.dailyCap) return 0;
+        return config.dailyCap - config.dailySaved;
+    }
+
+    /**
+     * @notice Get remaining monthly cap (accounts for time-based reset)
+     */
+    function getRemainingMonthlyCap(address user) external view returns (uint256) {
+        SpendAndSaveConfig memory config = _userConfigs[user];
+        if (!config.enabled) return 0;
+        
+        if (SpendAndSaveLib.needsMonthlyReset(config.lastResetMonth)) {
+            return config.monthlyCap;
+        }
+        
+        if (config.monthlySaved >= config.monthlyCap) return 0;
+        return config.monthlyCap - config.monthlySaved;
+    }
+
+    /**
+     * @notice Calculate save amount for a hypothetical spend
+     * @return saveAmount The amount that would be saved
+     * @return willExecute Whether the auto-save would execute
+     * @return reason Human-readable reason if it won't execute
+     */
+    function calculateSaveAmount(address user, uint256 spendAmount) 
+        external 
+        view 
+        returns (uint256 saveAmount, bool willExecute, string memory reason) 
+    {
+        SpendAndSaveConfig memory config = _userConfigs[user];
+
+        if (!config.enabled) {
+            return (0, false, "Not enabled");
+        }
+
+        if (spendAmount < config.minSpendThreshold) {
+            return (0, false, "Below threshold");
+        }
+
+        // Calculate save amount
+        saveAmount = SpendAndSaveLib.calculateSaveAmount(
+            spendAmount,
+            config.value,
+            config.isPercentage
+        );
+
+        // Check caps with time-based resets
+        uint256 dailyRemaining = SpendAndSaveLib.needsDailyReset(config.lastResetDay)
+            ? config.dailyCap
+            : (config.dailyCap > config.dailySaved ? config.dailyCap - config.dailySaved : 0);
+
+        uint256 monthlyRemaining = SpendAndSaveLib.needsMonthlyReset(config.lastResetMonth)
+            ? config.monthlyCap
+            : (config.monthlyCap > config.monthlySaved ? config.monthlyCap - config.monthlySaved : 0);
+
+        if (saveAmount > dailyRemaining) {
+            return (saveAmount, false, "Would exceed daily cap");
+        }
+
+        if (saveAmount > monthlyRemaining) {
+            return (saveAmount, false, "Would exceed monthly cap");
+        }
+
+        uint256 userBalance = USDC.balanceOf(user);
+        if (userBalance < saveAmount) {
+            return (saveAmount, false, "Insufficient balance");
+        }
+
+        uint256 allowance = USDC.allowance(user, address(this));
+        if (allowance < saveAmount) {
+            return (saveAmount, false, "Insufficient allowance");
+        }
+
+        return (saveAmount, true, "Will execute");
+    }
+
+    /**
+     * @notice Get lifetime statistics
+     */
+    function getUserStats(address user) 
+        external 
+        view 
+        returns (
+            uint256 totalAutoSaved,
+            uint256 transactionCount,
+            uint256 dailySaved,
+            uint256 monthlySaved,
+            uint256 lastAutoSave
+        ) 
+    {
+        SpendAndSaveConfig memory config = _userConfigs[user];
+        return (
+            config.totalAutoSaved,
+            config.transactionCount,
+            config.dailySaved,
+            config.monthlySaved,
+            _lastAutoSaveTime[user]
+        );
+    }
+
+    /**
+     * @notice Check if transaction has been processed
+     */
+    function isTransactionProcessed(bytes32 txHash) external view returns (bool) {
+        return _processedTransactions[txHash];
+    }
 }
