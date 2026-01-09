@@ -621,5 +621,45 @@ contract SpendAndSaveModuleTest is Test {
         assertFalse(spendAndSave.hasRole(spendAndSave.AUTOMATION_ROLE(), automationService));
     }
 
+    // ============ Fuzz Tests ============
+
+    function testFuzz_EnableSpendAndSave_ValidPercentages(uint8 percentage) public {
+        vm.assume(percentage >= 1 && percentage <= 50);
+        
+        vm.startPrank(user1);
+        spendAndSave.linkVault(address(vault));
+        usdc.approve(address(spendAndSave), type(uint256).max);
+        
+        spendAndSave.enableSpendAndSave(
+            percentage,
+            true,
+            MIN_THRESHOLD,
+            DAILY_CAP,
+            MONTHLY_CAP,
+            0
+        );
+        
+        ISpendAndSaveModule.SpendAndSaveConfig memory config = spendAndSave.getUserConfig(user1);
+        assertEq(config.value, percentage);
+        
+        vm.stopPrank();
+    }
+
+    function testFuzz_AutoSave_VariousSpendAmounts(uint96 spendAmount) public {
+        vm.assume(spendAmount >= MIN_THRESHOLD && spendAmount <= 1000 * 10**6);
+        
+        _setupUser1WithSpendAndSave();
+        
+        bytes32 txHash = keccak256(abi.encodePacked(spendAmount));
+        
+        vm.prank(automationService);
+        spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash);
+        
+        uint256 expectedSave = (spendAmount * 10) / 100;
+        
+        (uint256 totalAutoSaved,,,) = spendAndSave.getUserStats(user1);
+        assertEq(totalAutoSaved, expectedSave);
+    }
+
     
 }
