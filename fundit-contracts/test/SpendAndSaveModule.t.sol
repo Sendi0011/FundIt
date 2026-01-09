@@ -558,5 +558,44 @@ contract SpendAndSaveModuleTest is Test {
         assertEq(remaining, DAILY_CAP - 10 * 10**6);
     }
 
+    // ============ Emergency Pause Tests ============
 
+    function test_EmergencyPause_BlocksNewConfigurations() public {
+        spendAndSave.emergencyPause();
+        
+        vm.startPrank(user1);
+        spendAndSave.linkVault(address(vault));
+        
+        vm.expectRevert("Pausable: paused");
+        spendAndSave.enableSpendAndSave(10, true, MIN_THRESHOLD, DAILY_CAP, MONTHLY_CAP, 0);
+        
+        vm.stopPrank();
+    }
+
+    function test_EmergencyPause_BlocksAutoSaves() public {
+        _setupUser1WithSpendAndSave();
+        
+        spendAndSave.emergencyPause();
+        
+        bytes32 txHash = keccak256("tx1");
+        vm.prank(automationService);
+        vm.expectRevert("Pausable: paused");
+        spendAndSave.autoDepositSpendAndSave(user1, 100 * 10**6, txHash);
+    }
+
+    function test_EmergencyUnpause_RestoresOperations() public {
+        _setupUser1WithSpendAndSave();
+        
+        spendAndSave.emergencyPause();
+        spendAndSave.emergencyUnpause();
+        
+        bytes32 txHash = keccak256("tx1");
+        vm.prank(automationService);
+        spendAndSave.autoDepositSpendAndSave(user1, 100 * 10**6, txHash);
+        
+        (uint256 totalAutoSaved,,,) = spendAndSave.getUserStats(user1);
+        assertEq(totalAutoSaved, 10 * 10**6);
+    }
+
+    
 }
