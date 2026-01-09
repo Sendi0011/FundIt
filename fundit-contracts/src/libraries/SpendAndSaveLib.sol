@@ -32,5 +32,27 @@ library SpendAndSaveLib {
         if (amount == 0) revert InvalidAmount();
     }
 
-    
+    /**
+     * @notice Validate cap configuration
+     */
+    function validateCaps(uint256 dailyCap, uint256 monthlyCap) internal pure {
+        if (dailyCap == 0 || monthlyCap == 0) revert InvalidConfiguration();
+        if (monthlyCap < dailyCap) revert InvalidConfiguration();
+    }
+
+    /**
+     * @notice Calculate save amount
+     */
+    function calculateSaveAmount(
+        uint256 spendAmount,
+        uint256 value,
+        bool isPercentage
+    ) internal pure returns (uint256) {
+        if (isPercentage) {
+            return (spendAmount * value) / PERCENTAGE_DENOMINATOR;
+        }
+        return value;
+    }
+
+   
 }
