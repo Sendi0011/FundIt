@@ -54,5 +54,17 @@ library SpendAndSaveLib {
         return value;
     }
 
-   
+    /**
+     * @notice Check if daily reset is needed
+     */
+    function needsDailyReset(uint256 lastResetDay) internal view returns (bool) {
+        return block.timestamp >= lastResetDay + SECONDS_PER_DAY;
+    }
+
+    /**
+     * @notice Check if monthly reset is needed
+     */
+    function needsMonthlyReset(uint256 lastResetMonth) internal view returns (bool) {
+        return block.timestamp >= lastResetMonth + SECONDS_PER_MONTH;
+    }
 }
