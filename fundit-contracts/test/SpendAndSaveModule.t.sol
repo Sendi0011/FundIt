@@ -519,5 +519,44 @@ contract SpendAndSaveModuleTest is Test {
         spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash3);
     }
 
-    
+    // ============ View Function Tests ============
+
+    function test_CalculateSaveAmount_Percentage() public {
+        _setupUser1WithSpendAndSave();
+        
+        (uint256 saveAmount, bool willExecute, string memory reason) = 
+            spendAndSave.calculateSaveAmount(user1, 100 * 10**6);
+        
+        assertEq(saveAmount, 10 * 10**6);
+        assertTrue(willExecute);
+        assertEq(reason, "Will execute");
+    }
+
+    function test_CalculateSaveAmount_BelowThreshold() public {
+        _setupUser1WithSpendAndSave();
+        
+        (uint256 saveAmount, bool willExecute, string memory reason) = 
+            spendAndSave.calculateSaveAmount(user1, 5 * 10**6);
+        
+        assertEq(saveAmount, 0);
+        assertFalse(willExecute);
+        assertEq(reason, "Below threshold");
+    }
+
+    function test_GetRemainingDailyCap() public {
+        _setupUser1WithSpendAndSave();
+        
+        uint256 remaining = spendAndSave.getRemainingDailyCap(user1);
+        assertEq(remaining, DAILY_CAP);
+        
+        // Make one auto-save
+        bytes32 txHash = keccak256("tx1");
+        vm.prank(automationService);
+        spendAndSave.autoDepositSpendAndSave(user1, 100 * 10**6, txHash);
+        
+        remaining = spendAndSave.getRemainingDailyCap(user1);
+        assertEq(remaining, DAILY_CAP - 10 * 10**6);
+    }
+
+
 }
