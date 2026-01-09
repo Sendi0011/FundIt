@@ -370,5 +370,23 @@ contract SpendAndSaveModule is
         );
     }
 
+    // ============ Internal Functions ============
+
+    /**
+     * @notice Reset daily/monthly counters based on time
+     * @dev Uses time-based logic instead of block numbers for accuracy
+     */
+    function _resetCountersIfNeeded(SpendAndSaveConfig storage config) internal {
+        if (SpendAndSaveLib.needsDailyReset(config.lastResetDay)) {
+            config.dailySaved = 0;
+            config.lastResetDay = block.timestamp;
+        }
+
+        if (SpendAndSaveLib.needsMonthlyReset(config.lastResetMonth)) {
+            config.monthlySaved = 0;
+            config.lastResetMonth = block.timestamp;
+        }
+    }
+
     
 }
