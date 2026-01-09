@@ -132,5 +132,18 @@ contract SpendAndSaveModule is
         emit VaultLinked(msg.sender, vault, block.timestamp);
     }
 
+    /**
+     * @notice Unlink vault (must disable Spend & Save first)
+     */
+    function unlinkVault() external nonReentrant {
+        if (_userConfigs[msg.sender].enabled) {
+            revert SpendAndSaveNotEnabled(); // Must disable first
+        }
+        
+        address oldVault = _userVaults[msg.sender];
+        delete _userVaults[msg.sender];
+        emit VaultUnlinked(msg.sender, oldVault, block.timestamp);
+    }
+
     
 }
