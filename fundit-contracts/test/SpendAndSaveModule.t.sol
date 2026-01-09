@@ -486,5 +486,38 @@ contract SpendAndSaveModuleTest is Test {
         spendAndSave.autoDepositSpendAndSave(user1, 100 * 10**6, txHash);
     }
 
-    /
+    // ============ Rate Limiting Tests ============
+
+    function test_RateLimit_PreventsTooFrequentCalls() public {
+        _setupUser1WithSpendAndSave();
+        
+        uint256 spendAmount = 100 * 10**6;
+        
+        // First call succeeds
+        bytes32 txHash1 = keccak256("tx1");
+        vm.prank(automationService);
+        spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash1);
+        
+        // Second call within 60 seconds is skipped
+        bytes32 txHash2 = keccak256("tx2");
+        vm.warp(block.timestamp + 30); // Only 30 seconds
+        
+        vm.expectEmit(true, true, true, true);
+        emit AutoSaveSkipped(user1, spendAmount, "Rate limit", block.timestamp);
+        
+        vm.prank(automationService);
+        spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash2);
+        
+        // Third call after 60 seconds succeeds
+        bytes32 txHash3 = keccak256("tx3");
+        vm.warp(block.timestamp + 31); // Total 61 seconds
+        
+        vm.expectEmit(true, true, true, true);
+        emit AutoSaveTriggered(user1, spendAmount, 10 * 10**6, block.timestamp, 20 * 10**6, txHash3);
+        
+        vm.prank(automationService);
+        spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash3);
+    }
+
+    
 }
