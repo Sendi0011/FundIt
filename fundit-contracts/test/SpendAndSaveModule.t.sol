@@ -131,7 +131,7 @@ contract SpendAndSaveModuleTest is Test {
         );
         
         // Verify configuration
-        ISpendAndSaveModule.SpendAndSaveConfig memory config = spendAndSave.getUserConfig(user1);
+        SpendAndSaveStorage.SpendAndSaveConfig memory config = spendAndSave.getUserConfig(user1);
         assertTrue(config.enabled);
         assertTrue(config.isPercentage);
         assertEq(config.value, 10);
@@ -205,7 +205,7 @@ contract SpendAndSaveModuleTest is Test {
             0
         );
         
-        ISpendAndSaveModule.SpendAndSaveConfig memory config = spendAndSave.getUserConfig(user1);
+        SpendAndSaveStorage.SpendAndSaveConfig memory config = spendAndSave.getUserConfig(user1);
         assertEq(config.value, 20);
         assertEq(config.minSpendThreshold, MIN_THRESHOLD * 2);
     }
@@ -234,7 +234,7 @@ contract SpendAndSaveModuleTest is Test {
         
         assertFalse(spendAndSave.isSpendAndSaveEnabled(user1));
         
-        ISpendAndSaveModule.SpendAndSaveConfig memory config = spendAndSave.getUserConfig(user1);
+        SpendAndSaveStorage.SpendAndSaveConfig memory config = spendAndSave.getUserConfig(user1);
         assertEq(config.value, 0);
     }
 
@@ -323,7 +323,7 @@ contract SpendAndSaveModuleTest is Test {
         vm.prank(automationService);
         spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash);
         
-        (uint256 totalAutoSaved,,,) = spendAndSave.getUserStats(user1);
+        (uint256 totalAutoSaved,,,,) = spendAndSave.getUserStats(user1);
         assertEq(totalAutoSaved, expectedSave);
     }
 
@@ -339,7 +339,7 @@ contract SpendAndSaveModuleTest is Test {
         vm.prank(automationService);
         spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash);
         
-        (uint256 totalAutoSaved,,,) = spendAndSave.getUserStats(user1);
+        (uint256 totalAutoSaved,,,,) = spendAndSave.getUserStats(user1);
         assertEq(totalAutoSaved, 0);
     }
 
@@ -414,13 +414,13 @@ contract SpendAndSaveModuleTest is Test {
         // 5 transactions = 50 USDC (hits cap)
         
         for (uint i = 0; i < 5; i++) {
-            bytes32 txHash = keccak256(abi.encodePacked("tx", i));
+            bytes32 txHashLoop = keccak256(abi.encodePacked("tx_loop", i));
             vm.prank(automationService);
-            spendAndSave.autoDepositSpendAndSave(user1, 100 * 10**6, txHash);
+            spendAndSave.autoDepositSpendAndSave(user1, 100 * 10**6, txHashLoop);
             vm.warp(block.timestamp + 61); // Skip rate limit
         }
         
-        (,, uint256 dailySaved,) = spendAndSave.getUserStats(user1);
+        (,, uint256 dailySaved,,) = spendAndSave.getUserStats(user1);
         assertEq(dailySaved, DAILY_CAP);
         
         // Next transaction should be skipped
@@ -437,9 +437,9 @@ contract SpendAndSaveModuleTest is Test {
         
         // Hit daily cap
         for (uint i = 0; i < 5; i++) {
-            bytes32 txHash = keccak256(abi.encodePacked("tx", i));
+            bytes32 txHashLoop = keccak256(abi.encodePacked("tx_reset", i));
             vm.prank(automationService);
-            spendAndSave.autoDepositSpendAndSave(user1, 100 * 10**6, txHash);
+            spendAndSave.autoDepositSpendAndSave(user1, 100 * 10**6, txHashLoop);
             vm.warp(block.timestamp + 61);
         }
         
@@ -460,7 +460,7 @@ contract SpendAndSaveModuleTest is Test {
         
         // Make 50 auto-saves = 500 USDC (monthly cap)
         for (uint i = 0; i < 50; i++) {
-            bytes32 txHash = keccak256(abi.encodePacked("tx", i));
+            bytes32 txHashLoop = keccak256(abi.encodePacked("tx_monthly", i));
             
             // Reset daily cap every 5 transactions
             if (i % 5 == 0 && i > 0) {
@@ -468,11 +468,11 @@ contract SpendAndSaveModuleTest is Test {
             }
             
             vm.prank(automationService);
-            spendAndSave.autoDepositSpendAndSave(user1, 100 * 10**6, txHash);
+            spendAndSave.autoDepositSpendAndSave(user1, 100 * 10**6, txHashLoop);
             vm.warp(block.timestamp + 61);
         }
         
-        (,,, uint256 monthlySaved) = spendAndSave.getUserStats(user1);
+        (,,, uint256 monthlySaved,) = spendAndSave.getUserStats(user1);
         assertEq(monthlySaved, MONTHLY_CAP);
         
         // Next should be skipped
@@ -494,12 +494,12 @@ contract SpendAndSaveModuleTest is Test {
         uint256 spendAmount = 100 * 10**6;
         
         // First call succeeds
-        bytes32 txHash1 = keccak256("tx1");
+        bytes32 txHash1 = keccak256("tx_rate1");
         vm.prank(automationService);
         spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash1);
         
         // Second call within 60 seconds is skipped
-        bytes32 txHash2 = keccak256("tx2");
+        bytes32 txHash2 = keccak256("tx_rate2");
         vm.warp(block.timestamp + 30); // Only 30 seconds
         
         vm.expectEmit(true, true, true, true);
@@ -509,7 +509,7 @@ contract SpendAndSaveModuleTest is Test {
         spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash2);
         
         // Third call after 60 seconds succeeds
-        bytes32 txHash3 = keccak256("tx3");
+        bytes32 txHash3 = keccak256("tx_rate3");
         vm.warp(block.timestamp + 31); // Total 61 seconds
         
         vm.expectEmit(true, true, true, true);
@@ -550,7 +550,7 @@ contract SpendAndSaveModuleTest is Test {
         assertEq(remaining, DAILY_CAP);
         
         // Make one auto-save
-        bytes32 txHash = keccak256("tx1");
+        bytes32 txHash = keccak256("tx_cap");
         vm.prank(automationService);
         spendAndSave.autoDepositSpendAndSave(user1, 100 * 10**6, txHash);
         
@@ -577,7 +577,7 @@ contract SpendAndSaveModuleTest is Test {
         
         spendAndSave.emergencyPause();
         
-        bytes32 txHash = keccak256("tx1");
+        bytes32 txHash = keccak256("tx_paused");
         vm.prank(automationService);
         vm.expectRevert("Pausable: paused");
         spendAndSave.autoDepositSpendAndSave(user1, 100 * 10**6, txHash);
@@ -589,11 +589,11 @@ contract SpendAndSaveModuleTest is Test {
         spendAndSave.emergencyPause();
         spendAndSave.emergencyUnpause();
         
-        bytes32 txHash = keccak256("tx1");
+        bytes32 txHash = keccak256("tx_unpause");
         vm.prank(automationService);
         spendAndSave.autoDepositSpendAndSave(user1, 100 * 10**6, txHash);
         
-        (uint256 totalAutoSaved,,,) = spendAndSave.getUserStats(user1);
+        (uint256 totalAutoSaved,,,,) = spendAndSave.getUserStats(user1);
         assertEq(totalAutoSaved, 10 * 10**6);
     }
 
@@ -639,7 +639,7 @@ contract SpendAndSaveModuleTest is Test {
             0
         );
         
-        ISpendAndSaveModule.SpendAndSaveConfig memory config = spendAndSave.getUserConfig(user1);
+        SpendAndSaveStorage.SpendAndSaveConfig memory config = spendAndSave.getUserConfig(user1);
         assertEq(config.value, percentage);
         
         vm.stopPrank();
@@ -657,7 +657,7 @@ contract SpendAndSaveModuleTest is Test {
         
         uint256 expectedSave = (spendAmount * 10) / 100;
         
-        (uint256 totalAutoSaved,,,) = spendAndSave.getUserStats(user1);
+        (uint256 totalAutoSaved,,,,) = spendAndSave.getUserStats(user1);
         assertEq(totalAutoSaved, expectedSave);
     }
 
