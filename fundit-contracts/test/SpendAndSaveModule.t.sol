@@ -359,5 +359,50 @@ contract SpendAndSaveModuleTest is Test {
         spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash);
     }
 
+    function test_AutoDepositSpendAndSave_SkipWhenInsufficientBalance() public {
+        _setupUser1WithSpendAndSave();
+        
+        // Transfer away most of user's balance
+        vm.prank(user1);
+        usdc.transfer(user2, INITIAL_BALANCE - 1 * 10**6);
+        
+        uint256 spendAmount = 100 * 10**6;
+        bytes32 txHash = keccak256("tx5");
+        
+        vm.expectEmit(true, true, true, true);
+        emit AutoSaveSkipped(user1, spendAmount, "Insufficient balance", block.timestamp);
+        
+        vm.prank(automationService);
+        spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash);
+    }
+
+    function test_AutoDepositSpendAndSave_RevertOnDuplicateTransaction() public {
+        _setupUser1WithSpendAndSave();
+        
+        uint256 spendAmount = 100 * 10**6;
+        bytes32 txHash = keccak256("tx6");
+        
+        // First call succeeds
+        vm.prank(automationService);
+        spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash);
+        
+        // Second call with same txHash reverts
+        vm.prank(automationService);
+        vm.expectRevert(SpendAndSaveModule.DuplicateTransaction.selector);
+        spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash);
+    }
+
+    function test_AutoDepositSpendAndSave_RevertWhenUnauthorized() public {
+        _setupUser1WithSpendAndSave();
+        
+        uint256 spendAmount = 100 * 10**6;
+        bytes32 txHash = keccak256("tx7");
+        
+        // Non-automation service tries to call
+        vm.prank(user2);
+        vm.expectRevert(AutomationGuard.UnauthorizedAutomation.selector);
+        spendAndSave.autoDepositSpendAndSave(user1, spendAmount, txHash);
+    }
+
     
 }
