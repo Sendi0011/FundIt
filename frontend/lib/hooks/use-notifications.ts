@@ -12,7 +12,7 @@ export interface Notification {
   duration?: number
 }
 
-// Hook for managing notifications
+// Hook for notifications
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
 
@@ -27,7 +27,7 @@ export function useNotifications() {
 
     setNotifications((prev) => [...prev, newNotification])
 
-    // Auto-dismiss if enabled
+    // Automated dismiss if enabled
     if (newNotification.autoDismiss) {
       setTimeout(() => {
         removeNotification(newNotification.id)
@@ -141,16 +141,13 @@ export function useNotifications() {
   )
 
   return {
-    // State
     notifications,
-    // Functions
     addNotification,
     removeNotification,
     notifySuccess,
     notifyError,
     notifyInfo,
     notifyWarning,
-    // Templates
     notifyDepositSuccess,
     notifyWithdrawSuccess,
     notifySpendAndSaveTrigger,
