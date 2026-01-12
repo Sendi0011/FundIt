@@ -1,0 +1,10 @@
+{
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "timestamp": 1768245882,
+  "contracts": {
+    "SpendAndSaveModule": "0x5546CC7b7D31Ac8363b3F5944598da7132151320",
+    "USDC": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+  },
+  "automationService": "0x8a7AEad289a7CFE47891C4a320c773b254581fcB"
+}
