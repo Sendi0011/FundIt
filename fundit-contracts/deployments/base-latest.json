@@ -1,0 +1,10 @@
+{
+  "network": "base",
+  "chainId": 8453,
+  "timestamp": 1768246395,
+  "contracts": {
+    "SpendAndSaveModule": "0x551B59333B6cbaBC3997796A0106e2D1095A7649",
+    "USDC": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  },
+  "automationService": "0x8a7AEad289a7CFE47891C4a320c773b254581fcB"
+}
