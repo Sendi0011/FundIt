@@ -1,4 +1,3 @@
-// Types derived from your smart contract
 export interface SpendAndSaveConfig {
     enabled: boolean;
     isPercentage: boolean;
