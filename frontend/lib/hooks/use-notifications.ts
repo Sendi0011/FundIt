@@ -12,7 +12,6 @@ export interface Notification {
   duration?: number
 }
 
-// Hook for notifications
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
 
@@ -87,7 +86,6 @@ export function useNotifications() {
     [addNotification],
   )
 
-  // Notification templates
   const notifyDepositSuccess = useCallback(
     (amount: number) => {
       return notifySuccess("Deposit Successful", `You've deposited ${amount} USDC to your savings`)
