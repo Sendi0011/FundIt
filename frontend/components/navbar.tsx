@@ -1,8 +1,8 @@
 "use client"
-import { WalletButton } from "./wallet-button"
 import Link from "next/link"
 import { History } from "lucide-react"
 import { Button } from "./ui/button"
+import { WalletButton } from "@/components/wallet-button";
 
 export function Navbar() {
   return (
