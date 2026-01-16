@@ -1,17 +1,20 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
-import { NotificationsProvider } from "@/components/notifications-provider"
-import { NotificationsDisplay } from "@/components/notifications-display"
-import "./globals.css"
+import type React from "react";
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { NotificationsProvider } from "@/components/notifications-provider";
+import { NotificationsDisplay } from "@/components/notifications-display";
+import { Providers } from "@/components/providers";
+import "./globals.css";
+import "@rainbow-me/rainbowkit/styles.css";
 
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
+const _geist = Geist({ subsets: ["latin"] });
+const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "FUNDit - Automated Savings on Base",
-  description: "Secure, automated savings platform with Spend & Save automation on Base blockchain",
+  description:
+    "Secure, automated savings platform with Spend & Save automation on Base blockchain",
   generator: "v0.app",
   icons: {
     icon: [
@@ -30,22 +33,24 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-icon.png",
   },
-}
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en">
       <body className={`font-sans antialiased`}>
-        <NotificationsProvider>
-          {children}
-          <NotificationsDisplay />
-          <Analytics />
-        </NotificationsProvider>
+        <Providers>
+          <NotificationsProvider>
+            {children}
+            <NotificationsDisplay />
+            <Analytics />
+          </NotificationsProvider>
+        </Providers>
       </body>
     </html>
-  )
+  );
 }

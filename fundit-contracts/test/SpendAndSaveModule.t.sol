@@ -54,11 +54,11 @@ contract SpendAndSaveModuleTest is Test {
     address public automationService;
     
     // Test constants
-    uint256 constant INITIAL_BALANCE = 10_000 * 10**6; // 10,000 USDC
-    uint256 constant MIN_THRESHOLD = 10 * 10**6; // 10 USDC
-    uint256 constant DAILY_CAP = 50 * 10**6; // 50 USDC
-    uint256 constant MONTHLY_CAP = 500 * 10**6; // 500 USDC
-    uint256 constant RATE_LIMIT = 60; // 60 seconds
+    uint256 constant INITIAL_BALANCE = 10_000 * 10**6; 
+    uint256 constant MIN_THRESHOLD = 10 * 10**6; 
+    uint256 constant DAILY_CAP = 50 * 10**6; 
+    uint256 constant MONTHLY_CAP = 500 * 10**6;
+    uint256 constant RATE_LIMIT = 60; 
 
     event SpendAndSaveEnabled(
         address indexed user,
