@@ -374,14 +374,12 @@ contract SpendAndSaveModule is
             return (0, false, "Below threshold");
         }
 
-        // Calculate save amount
         saveAmount = SpendAndSaveLib.calculateSaveAmount(
             spendAmount,
             config.value,
             config.isPercentage
         );
 
-        // Check caps with time-based resets
         uint256 dailyRemaining = SpendAndSaveLib.needsDailyReset(config.lastResetDay)
             ? config.dailyCap
             : (config.dailyCap > config.dailySaved ? config.dailyCap - config.dailySaved : 0);

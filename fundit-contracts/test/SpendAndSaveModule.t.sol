@@ -53,7 +53,6 @@ contract SpendAndSaveModuleTest is Test {
     address public user2;
     address public automationService;
     
-    // Test constants
     uint256 constant INITIAL_BALANCE = 10_000 * 10**6; 
     uint256 constant MIN_THRESHOLD = 10 * 10**6; 
     uint256 constant DAILY_CAP = 50 * 10**6; 
@@ -126,12 +125,12 @@ contract SpendAndSaveModuleTest is Test {
         emit SpendAndSaveEnabled(user1, true, 10, MIN_THRESHOLD, DAILY_CAP, MONTHLY_CAP, block.timestamp);
         
         spendAndSave.enableSpendAndSave(
-            10,           // 10%
-            true,         // isPercentage
+            10,        
+            true,         
             MIN_THRESHOLD,
             DAILY_CAP,
             MONTHLY_CAP,
-            0             // flexible savings
+            0             
         );
         
         // Verify configuration
@@ -154,7 +153,6 @@ contract SpendAndSaveModuleTest is Test {
         
         spendAndSave.enableSpendAndSave(10, true, MIN_THRESHOLD, DAILY_CAP, MONTHLY_CAP, 0);
         
-        // Try to enable again
         vm.expectRevert(SpendAndSaveModule.SpendAndSaveAlreadyEnabled.selector);
         spendAndSave.enableSpendAndSave(10, true, MIN_THRESHOLD, DAILY_CAP, MONTHLY_CAP, 0);
         
@@ -174,11 +172,9 @@ contract SpendAndSaveModuleTest is Test {
         vm.startPrank(user1);
         spendAndSave.linkVault(address(vault));
         
-        // Test 0%
         vm.expectRevert(SpendAndSaveLib.InvalidPercentage.selector);
         spendAndSave.enableSpendAndSave(0, true, MIN_THRESHOLD, DAILY_CAP, MONTHLY_CAP, 0);
         
-        // Test 51%
         vm.expectRevert(SpendAndSaveLib.InvalidPercentage.selector);
         spendAndSave.enableSpendAndSave(51, true, MIN_THRESHOLD, DAILY_CAP, MONTHLY_CAP, 0);
         
@@ -201,7 +197,7 @@ contract SpendAndSaveModuleTest is Test {
         
         vm.prank(user1);
         spendAndSave.updateSpendAndSaveConfig(
-            20,           // 20%
+            20,        
             true,
             MIN_THRESHOLD * 2,
             DAILY_CAP * 2,
@@ -219,11 +215,9 @@ contract SpendAndSaveModuleTest is Test {
         
         vm.startPrank(user1);
         
-        // Pause
         spendAndSave.pauseSpendAndSave();
         assertFalse(spendAndSave.isSpendAndSaveEnabled(user1));
         
-        // Resume
         spendAndSave.resumeSpendAndSave();
         assertTrue(spendAndSave.isSpendAndSaveEnabled(user1));
         
