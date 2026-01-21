@@ -47,10 +47,12 @@ export function WalletButton() {
 
               return (
                 <div className="flex gap-2">
+                  {/* Network - Hidden on small screens */}
                   <Button
                     onClick={openChainModal}
                     variant="outline"
                     size="sm"
+                    className="hidden lg:flex"
                   >
                     {chain.hasIcon && chain.iconUrl && (
                       <img
@@ -62,8 +64,10 @@ export function WalletButton() {
                     {chain.name}
                   </Button>
 
+                  {/* Account */}
                   <Button onClick={openAccountModal} size="sm">
-                    {account.displayName}
+                    <span className="hidden sm:inline">{account.displayName}</span>
+                    <span className="sm:hidden">{account.displayName?.slice(0, 6)}...</span>
                   </Button>
                 </div>
               );
