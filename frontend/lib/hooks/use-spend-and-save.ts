@@ -73,7 +73,6 @@ export function useSpendAndSave() {
     },
   });
 
-  // Write Functions
   const { writeContract, data: hash, isPending } = useWriteContract();
 
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
@@ -169,7 +168,6 @@ export function useSpendAndSave() {
   };
 
   return {
-    // State
     config,
     stats,
     isEnabled: isEnabled as boolean,
@@ -180,7 +178,6 @@ export function useSpendAndSave() {
     isSuccess,
     txHash: hash,
 
-    // Functions
     enableSpendAndSave,
     updateConfig,
     pauseSpendAndSave,

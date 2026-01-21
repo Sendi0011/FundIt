@@ -10,7 +10,7 @@ interface TotalSavedCardProps {
 
 export function TotalSavedCard({ totalAmount, monthlyIncrease }: TotalSavedCardProps) {
   return (
-    <Card className="bg-gradient-to-br from-primary via-primary to-secondary">
+    <Card className="bg-linear-to-br from-primary via-primary to-secondary">
       <CardHeader>
         <CardTitle className="text-primary-foreground">Total Saved</CardTitle>
       </CardHeader>

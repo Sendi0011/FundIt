@@ -11,10 +11,10 @@ interface WelcomeScreenProps {
 
 export function WelcomeScreen({ onCreateVault, isCreating }: WelcomeScreenProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-background via-background to-background flex items-center justify-center p-4">
       <Card className="w-full max-w-2xl shadow-xl">
         <CardHeader className="text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-accent mx-auto flex items-center justify-center">
+          <div className="w-16 h-16 rounded-full bg-linear-to-br from-primary to-accent mx-auto flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-3xl">₣</span>
           </div>
           <CardTitle className="text-4xl">Welcome to FUNDit</CardTitle>

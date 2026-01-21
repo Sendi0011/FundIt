@@ -24,7 +24,7 @@ export default function Home() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-b from-background to-background/50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-b from-background to-background/50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground">Redirecting to dashboard...</p>
         </div>
