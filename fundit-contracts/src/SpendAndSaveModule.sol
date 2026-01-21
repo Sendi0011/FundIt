@@ -10,23 +10,6 @@ import "./security/EmergencyPause.sol";
 import "./libraries/SpendAndSaveLib.sol";
 import "./interfaces/ISavingsVault.sol";
 
-/**
- * @title SpendAndSaveModule
- * @notice Production-ready automated savings triggered by spending patterns
- * @dev Implements comprehensive security measures and gas optimizations
- * 
- * Security Features:
- * - ReentrancyGuard on all state-changing functions
- * - Role-based access control for automation
- * - Emergency pause functionality
- * - Rate limiting to prevent spam
- * - Idempotency checks for duplicate prevention
- * - Time-locked resets for caps
- * - Balance verification before transfers
- * - No admin access to user funds
- * 
- * @custom:security-contact security@fundit.com
- */
 contract SpendAndSaveModule is 
     SpendAndSaveStorage,
     ReentrancyGuard,
@@ -104,10 +87,6 @@ contract SpendAndSaveModule is
 
     // ============ Constructor ============
 
-    /**
-     * @notice Initialize the Spend & Save module
-     * @param _usdc Address of USDC token on Base
-     */
     constructor(address _usdc) {
         if (_usdc == address(0)) revert ZeroAddress();
         USDC = IERC20(_usdc);
@@ -115,11 +94,6 @@ contract SpendAndSaveModule is
 
     // ============ User Configuration Functions ============
 
-    /**
-     * @notice Link user's savings vault for deposits
-     * @param vault Address of user's SavingsVault
-     * @dev Validates vault ownership before linking
-     */
     function linkVault(address vault) external nonReentrant {
         if (vault == address(0)) revert ZeroAddress();
         
@@ -132,9 +106,6 @@ contract SpendAndSaveModule is
         emit VaultLinked(msg.sender, vault, block.timestamp);
     }
 
-    /**
-     * @notice Unlink vault (must disable Spend & Save first)
-     */
     function unlinkVault() external nonReentrant {
         if (_userConfigs[msg.sender].enabled) {
             revert SpendAndSaveNotEnabled(); // Must disable first
@@ -145,15 +116,6 @@ contract SpendAndSaveModule is
         emit VaultUnlinked(msg.sender, oldVault, block.timestamp);
     }
 
-    /**
-     * @notice Enable Spend & Save with comprehensive validation
-     * @param value Percentage (1-50) or fixed USDC amount (in USDC decimals)
-     * @param isPercentage True for percentage-based, false for fixed amount
-     * @param minSpendThreshold Minimum spend to trigger auto-save (in USDC decimals)
-     * @param dailyCap Maximum USDC to auto-save per day (in USDC decimals)
-     * @param monthlyCap Maximum USDC to auto-save per month (in USDC decimals)
-     * @param destinationId 0 for flexible savings, >0 for specific position
-     */
     function enableSpendAndSave(
         uint256 value,
         bool isPercentage,
@@ -196,9 +158,6 @@ contract SpendAndSaveModule is
         );
     }
 
-    /**
-     * @notice Update configuration with validation
-     */
     function updateSpendAndSaveConfig(
         uint256 value,
         bool isPercentage,
@@ -237,18 +196,12 @@ contract SpendAndSaveModule is
         );
     }
 
-    /**
-     * @notice Pause Spend & Save (keeps config)
-     */
     function pauseSpendAndSave() external nonReentrant {
         if (!_userConfigs[msg.sender].enabled) revert SpendAndSaveNotEnabled();
         _userConfigs[msg.sender].enabled = false;
         emit SpendAndSavePaused(msg.sender, block.timestamp);
     }
 
-    /**
-     * @notice Resume Spend & Save
-     */
     function resumeSpendAndSave() external nonReentrant whenNotPaused {
         SpendAndSaveConfig storage config = _userConfigs[msg.sender];
         if (config.value == 0) revert SpendAndSaveLib.InvalidConfiguration();
@@ -258,9 +211,6 @@ contract SpendAndSaveModule is
         emit SpendAndSaveResumed(msg.sender, block.timestamp);
     }
 
-    /**
-     * @notice Disable completely and reset configuration
-     */
     function disableSpendAndSave() external nonReentrant {
         if (!_userConfigs[msg.sender].enabled) revert SpendAndSaveNotEnabled();
         delete _userConfigs[msg.sender];
@@ -269,19 +219,6 @@ contract SpendAndSaveModule is
 
     // ============ Automation Functions ============
 
-    /**
-     * @notice Process auto-save (called by automation service)
-     * @param user User who made a spend transaction
-     * @param originalSpendAmount Original USDC spend amount
-     * @param txHash Hash of the original spend transaction (for idempotency)
-     * 
-     * @dev Security measures:
-     * - Only automation service can call
-     * - Idempotency check prevents duplicate processing
-     * - Rate limiting prevents spam
-     * - All validations happen on-chain
-     * - Balance verified before transfer
-     */
     function autoDepositSpendAndSave(
         address user,
         uint256 originalSpendAmount,
@@ -372,10 +309,6 @@ contract SpendAndSaveModule is
 
     // ============ Internal Functions ============
 
-    /**
-     * @notice Reset daily/monthly counters based on time
-     * @dev Uses time-based logic instead of block numbers for accuracy
-     */
     function _resetCountersIfNeeded(SpendAndSaveConfig storage config) internal {
         if (SpendAndSaveLib.needsDailyReset(config.lastResetDay)) {
             config.dailySaved = 0;
@@ -390,30 +323,18 @@ contract SpendAndSaveModule is
 
     // ============ View Functions ============
 
-    /**
-     * @notice Get user's complete configuration
-     */
     function getUserConfig(address user) external view returns (SpendAndSaveConfig memory) {
         return _userConfigs[user];
     }
 
-    /**
-     * @notice Get user's linked vault
-     */
     function getUserVault(address user) external view returns (address) {
         return _userVaults[user];
     }
 
-    /**
-     * @notice Check if Spend & Save is enabled
-     */
     function isSpendAndSaveEnabled(address user) external view returns (bool) {
         return _userConfigs[user].enabled;
     }
 
-    /**
-     * @notice Get remaining daily cap (accounts for time-based reset)
-     */
     function getRemainingDailyCap(address user) external view returns (uint256) {
         SpendAndSaveConfig memory config = _userConfigs[user];
         if (!config.enabled) return 0;
@@ -426,9 +347,6 @@ contract SpendAndSaveModule is
         return config.dailyCap - config.dailySaved;
     }
 
-    /**
-     * @notice Get remaining monthly cap (accounts for time-based reset)
-     */
     function getRemainingMonthlyCap(address user) external view returns (uint256) {
         SpendAndSaveConfig memory config = _userConfigs[user];
         if (!config.enabled) return 0;
@@ -441,12 +359,6 @@ contract SpendAndSaveModule is
         return config.monthlyCap - config.monthlySaved;
     }
 
-    /**
-     * @notice Calculate save amount for a hypothetical spend
-     * @return saveAmount The amount that would be saved
-     * @return willExecute Whether the auto-save would execute
-     * @return reason Human-readable reason if it won't execute
-     */
     function calculateSaveAmount(address user, uint256 spendAmount) 
         external 
         view 
@@ -462,14 +374,12 @@ contract SpendAndSaveModule is
             return (0, false, "Below threshold");
         }
 
-        // Calculate save amount
         saveAmount = SpendAndSaveLib.calculateSaveAmount(
             spendAmount,
             config.value,
             config.isPercentage
         );
 
-        // Check caps with time-based resets
         uint256 dailyRemaining = SpendAndSaveLib.needsDailyReset(config.lastResetDay)
             ? config.dailyCap
             : (config.dailyCap > config.dailySaved ? config.dailyCap - config.dailySaved : 0);
@@ -499,9 +409,6 @@ contract SpendAndSaveModule is
         return (saveAmount, true, "Will execute");
     }
 
-    /**
-     * @notice Get lifetime statistics
-     */
     function getUserStats(address user) 
         external 
         view 
@@ -523,9 +430,6 @@ contract SpendAndSaveModule is
         );
     }
 
-    /**
-     * @notice Check if transaction has been processed
-     */
     function isTransactionProcessed(bytes32 txHash) external view returns (bool) {
         return _processedTransactions[txHash];
     }
