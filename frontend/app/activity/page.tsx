@@ -83,7 +83,7 @@ export default function ActivityPage() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gradient-to-b from-background to-background/50">
+      <div className="min-h-screen bg-linear-to-b from-background to-background/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -206,7 +206,7 @@ export default function ActivityPage() {
                       className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                     >
                       <div className="flex items-center gap-4 flex-1">
-                        <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                        <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
                           {getIcon(activity.type)}
                         </div>
                         <div className="flex-1">
@@ -217,7 +217,7 @@ export default function ActivityPage() {
                           </p>
                         </div>
                       </div>
-                      <div className="text-right flex-shrink-0">
+                      <div className="text-right shrink-0">
                         {activity.amount && (
                           <p
                             className={`font-bold text-sm ${activity.type === "withdraw" ? "text-orange-500" : "text-green-500"}`}

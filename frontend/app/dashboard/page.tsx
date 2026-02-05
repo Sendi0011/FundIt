@@ -125,7 +125,7 @@ export default function DashboardPage() {
                     />
                   )}
 
-                  {/* Placeholder for Target Savings - You'll integrate with SavingsVault */}
+                  {/* Placeholder for Target Savings - i'll integrate with SavingsVault */}
                   {/* <SavingsCard
                     type="target"
                     title="Summer Vacation"
@@ -161,7 +161,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-6">
-              {/* Spend & Save Stats - Using Real Data */}
+              {/* Spend & Save Stats - with Real Data */}
               {isEnabled && <SpendSaveStats />}
 
               {/* Spend & Save Activity */}
