@@ -4,14 +4,36 @@ import { Navbar } from "@/components/navbar"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useActivity } from "@/lib/hooks/use-activity"
-import { ArrowDownLeft, ArrowUpRight, Zap, CheckCircle2, Clock, AlertCircle, Download } from "lucide-react"
+import { 
+  ArrowDownLeft, 
+  ArrowUpRight, 
+  Zap, 
+  CheckCircle2, 
+  Clock, 
+  AlertCircle, 
+  Download,
+  Search,
+  Filter,
+  TrendingUp,
+  Wallet,
+  Settings,
+  Shield,
+  RefreshCw,
+  Eye,
+  Calendar,
+  DollarSign,
+  ChevronDown
+} from "lucide-react"
 import { useState, useMemo } from "react"
 
 export default function ActivityPage() {
   const { activities } = useActivity()
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "confirmed" | "failed">("all")
+  const [typeFilter, setTypeFilter] = useState<"all" | "deposit" | "withdraw" | "spend-save" | "vault-created" | "config-updated">("all")
 
   const filteredActivities = useMemo(() => {
     return activities.filter((activity) => {
@@ -19,9 +41,10 @@ export default function ActivityPage() {
         activity.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         activity.description.toLowerCase().includes(searchTerm.toLowerCase())
       const matchesStatus = statusFilter === "all" || activity.status === statusFilter
-      return matchesSearch && matchesStatus
+      const matchesType = typeFilter === "all" || activity.type === typeFilter
+      return matchesSearch && matchesStatus && matchesType
     })
-  }, [activities, searchTerm, statusFilter])
+  }, [activities, searchTerm, statusFilter, typeFilter])
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -30,13 +53,30 @@ export default function ActivityPage() {
       case "withdraw":
         return <ArrowUpRight className="h-5 w-5 text-orange-500" />
       case "spend-save":
-        return <Zap className="h-5 w-5 text-accent" />
+        return <Zap className="h-5 w-5 text-blue-500" />
       case "vault-created":
-        return <CheckCircle2 className="h-5 w-5 text-blue-500" />
+        return <Shield className="h-5 w-5 text-purple-500" />
       case "config-updated":
-        return <Clock className="h-5 w-5 text-purple-500" />
+        return <Settings className="h-5 w-5 text-indigo-500" />
       default:
-        return <AlertCircle className="h-5 w-5" />
+        return <AlertCircle className="h-5 w-5 text-gray-500" />
+    }
+  }
+
+  const getTypeDescription = (type: string) => {
+    switch (type) {
+      case "deposit":
+        return "Funds added to your vault"
+      case "withdraw":
+        return "Funds withdrawn from vault"
+      case "spend-save":
+        return "Automatic savings from spending"
+      case "vault-created":
+        return "New savings vault created"
+      case "config-updated":
+        return "Savings configuration updated"
+      default:
+        return "Transaction activity"
     }
   }
 
@@ -44,24 +84,24 @@ export default function ActivityPage() {
     switch (status) {
       case "confirmed":
         return (
-          <div className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 rounded-full text-xs font-medium text-green-700 dark:text-green-200">
-            <CheckCircle2 className="h-3 w-3" />
+          <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200 animate-pulse">
+            <CheckCircle2 className="h-3 w-3 mr-1" />
             Confirmed
-          </div>
+          </Badge>
         )
       case "pending":
         return (
-          <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 dark:bg-amber-900 rounded-full text-xs font-medium text-amber-700 dark:text-amber-200">
-            <Clock className="h-3 w-3" />
+          <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-200">
+            <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
             Pending
-          </div>
+          </Badge>
         )
       case "failed":
         return (
-          <div className="flex items-center gap-1 px-2 py-1 bg-red-100 dark:bg-red-900 rounded-full text-xs font-medium text-red-700 dark:text-red-200">
-            <AlertCircle className="h-3 w-3" />
+          <Badge variant="destructive" className="animate-pulse">
+            <AlertCircle className="h-3 w-3 mr-1" />
             Failed
-          </div>
+          </Badge>
         )
       default:
         return null
@@ -86,147 +126,278 @@ export default function ActivityPage() {
       <div className="min-h-screen bg-linear-to-b from-background to-background/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
             <div>
-              <h1 className="text-3xl font-bold">Activity History</h1>
-              <p className="text-muted-foreground mt-1">Track all your transactions and auto-saves</p>
+              <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+                <Eye className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+                Activity History
+              </h1>
+              <p className="text-muted-foreground mt-1 text-sm sm:text-base">Track all your transactions and auto-saves</p>
             </div>
-            <Button className="gap-2">
+            <Button className="gap-2 hover:scale-105 transition-transform w-full sm:w-auto">
               <Download className="h-4 w-4" />
               Export CSV
             </Button>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid md:grid-cols-3 gap-4">
-            <Card>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <ArrowDownLeft className="h-4 w-4 text-green-500" />
-                  Total Deposited
+                  <div className="p-2 bg-green-100 dark:bg-green-900 rounded-full">
+                    <ArrowDownLeft className="h-3 w-3 sm:h-4 sm:w-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <span className="text-xs sm:text-sm">Total Deposited</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalDeposits.toFixed(2)} USDC</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
+                  {totalDeposits.toFixed(2)} USDC
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3" />
                   {activities.filter((a) => a.type === "deposit").length} deposits
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-accent" />
-                  Auto-Saved
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-full">
+                    <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <span className="text-xs sm:text-sm">Auto-Saved</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalAutoSaved.toFixed(2)} USDC</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  {totalAutoSaved.toFixed(2)} USDC
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <Shield className="h-3 w-3" />
                   {activities.filter((a) => a.type === "spend-save").length} auto-saves
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="hover:shadow-lg transition-all duration-300 hover:scale-105 sm:col-span-2 lg:col-span-1">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <ArrowUpRight className="h-4 w-4 text-orange-500" />
-                  Total Withdrawn
+                  <div className="p-2 bg-orange-100 dark:bg-orange-900 rounded-full">
+                    <ArrowUpRight className="h-3 w-3 sm:h-4 sm:w-4 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <span className="text-xs sm:text-sm">Total Withdrawn</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{totalWithdrawals.toFixed(2)} USDC</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-xl sm:text-2xl font-bold text-orange-600 dark:text-orange-400">
+                  {totalWithdrawals.toFixed(2)} USDC
+                </div>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  <Wallet className="h-3 w-3" />
                   {activities.filter((a) => a.type === "withdraw").length} withdrawals
                 </p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Filters & Search */}
-          <Card>
+          {/* Enhanced Filters & Search */}
+          <Card className="hover:shadow-md transition-shadow">
             <CardHeader>
-              <CardTitle>Filter Activities</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <Filter className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                Filter Activities
+              </CardTitle>
+              <CardDescription className="text-sm">Search and filter your transaction history</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-4 flex-col md:flex-row">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Search activities..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search activities..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 transition-all focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              
+              {/* Filters Row */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                {/* Status Filter Dropdown */}
+                <div className="flex-1 sm:flex-none sm:min-w-[140px]">
+                  <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+                    <SelectTrigger className="w-full">
+                      <div className="flex items-center gap-2">
+                        {statusFilter === "confirmed" && <CheckCircle2 className="h-3 w-3" />}
+                        {statusFilter === "pending" && <Clock className="h-3 w-3" />}
+                        {statusFilter === "failed" && <AlertCircle className="h-3 w-3" />}
+                        <SelectValue placeholder="Status" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="confirmed">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Confirmed
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="pending">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-3 w-3" />
+                          Pending
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="failed">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="h-3 w-3" />
+                          Failed
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant={statusFilter === "all" ? "default" : "outline"}
-                    onClick={() => setStatusFilter("all")}
-                    size="sm"
-                  >
-                    All
-                  </Button>
-                  <Button
-                    variant={statusFilter === "confirmed" ? "default" : "outline"}
-                    onClick={() => setStatusFilter("confirmed")}
-                    size="sm"
-                  >
-                    Confirmed
-                  </Button>
-                  <Button
-                    variant={statusFilter === "pending" ? "default" : "outline"}
-                    onClick={() => setStatusFilter("pending")}
-                    size="sm"
-                  >
-                    Pending
-                  </Button>
+
+                {/* Type Filter Dropdown */}
+                <div className="flex-1 sm:flex-none sm:min-w-[140px]">
+                  <Select value={typeFilter} onValueChange={(value: any) => setTypeFilter(value)}>
+                    <SelectTrigger className="w-full">
+                      <div className="flex items-center gap-2">
+                        {typeFilter === "deposit" && <ArrowDownLeft className="h-3 w-3" />}
+                        {typeFilter === "withdraw" && <ArrowUpRight className="h-3 w-3" />}
+                        {typeFilter === "spend-save" && <Zap className="h-3 w-3" />}
+                        {typeFilter === "vault-created" && <Shield className="h-3 w-3" />}
+                        {typeFilter === "config-updated" && <Settings className="h-3 w-3" />}
+                        <SelectValue placeholder="Type" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="deposit">
+                        <div className="flex items-center gap-2">
+                          <ArrowDownLeft className="h-3 w-3" />
+                          Deposits
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="withdraw">
+                        <div className="flex items-center gap-2">
+                          <ArrowUpRight className="h-3 w-3" />
+                          Withdrawals
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="spend-save">
+                        <div className="flex items-center gap-2">
+                          <Zap className="h-3 w-3" />
+                          Auto-Save
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="vault-created">
+                        <div className="flex items-center gap-2">
+                          <Shield className="h-3 w-3" />
+                          Vault
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="config-updated">
+                        <div className="flex items-center gap-2">
+                          <Settings className="h-3 w-3" />
+                          Config
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+
+                {/* Clear Filters Button */}
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSearchTerm("")
+                    setStatusFilter("all")
+                    setTypeFilter("all")
+                  }}
+                  className="w-full sm:w-auto"
+                >
+                  Clear Filters
+                </Button>
               </div>
             </CardContent>
           </Card>
 
           {/* Activities List */}
-          <Card>
+          <Card className="hover:shadow-md transition-shadow">
             <CardHeader>
-              <CardTitle>Transactions</CardTitle>
-              <CardDescription>{filteredActivities.length} activities found</CardDescription>
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                Transactions
+              </CardTitle>
+              <CardDescription className="text-sm">
+                {filteredActivities.length} of {activities.length} activities found
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {filteredActivities.length === 0 ? (
-                <div className="text-center py-8">
-                  <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                  <p className="text-muted-foreground">No activities found</p>
+                <div className="text-center py-8 sm:py-12 animate-fade-in">
+                  <div className="p-3 sm:p-4 bg-muted/50 rounded-full w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-4 flex items-center justify-center">
+                    <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8 text-muted-foreground" />
+                  </div>
+                  <p className="text-muted-foreground text-base sm:text-lg font-medium">No activities found</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-1">Try adjusting your filters</p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {filteredActivities.map((activity) => (
+                <div className="space-y-3">
+                  {filteredActivities.map((activity, index) => (
                     <div
                       key={activity.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      className="group flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-muted/50 hover:shadow-md transition-all duration-300 hover:scale-[1.02] animate-slide-in gap-3 sm:gap-4"
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div className="flex items-center gap-4 flex-1">
                         <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
                           {getIcon(activity.type)}
                         </div>
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">{activity.title}</p>
-                          <p className="text-xs text-muted-foreground">{activity.description}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {activity.timestamp.toLocaleDateString()} {activity.timestamp.toLocaleTimeString()}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                            <p className="font-semibold text-sm truncate">{activity.title}</p>
+                            <Badge variant="outline" className="text-xs w-fit">
+                              {activity.type.replace("-", " ")}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-1 line-clamp-2">
+                            {activity.description || getTypeDescription(activity.type)}
                           </p>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {activity.timestamp.toLocaleDateString()}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {activity.timestamp.toLocaleTimeString()}
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="text-right shrink-0">
                         {activity.amount && (
-                          <p
-                            className={`font-bold text-sm ${activity.type === "withdraw" ? "text-orange-500" : "text-green-500"}`}
-                          >
-                            {activity.type === "withdraw" ? "-" : "+"}
-                            {activity.amount.toFixed(2)} USDC
-                          </p>
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-3 w-3" />
+                            <p
+                              className={`font-bold text-sm ${
+                                activity.type === "withdraw" 
+                                  ? "text-orange-600 dark:text-orange-400" 
+                                  : "text-green-600 dark:text-green-400"
+                              }`}
+                            >
+                              {activity.type === "withdraw" ? "-" : "+"}
+                              {activity.amount.toFixed(2)} USDC
+                            </p>
+                          </div>
                         )}
-                        <div className="mt-2">{getStatusBadge(activity.status)}</div>
+                        {getStatusBadge(activity.status)}
                       </div>
                     </div>
                   ))}
@@ -236,6 +407,27 @@ export default function ActivityPage() {
           </Card>
         </div>
       </div>
+
+      <style jsx global>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slide-in {
+          from { opacity: 0; transform: translateX(-20px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.6s ease-out;
+        }
+        
+        .animate-slide-in {
+          animation: slide-in 0.4s ease-out forwards;
+          opacity: 0;
+        }
+      `}</style>
     </>
   )
 }

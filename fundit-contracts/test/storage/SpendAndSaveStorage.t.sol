@@ -170,7 +170,7 @@ contract SpendAndSaveStorageTest is Test {
 
         mockStorage.setProcessedTransaction(txHash1, true);
         assertTrue(mockStorage.getProcessedTransaction(txHash1));
-        assertFalse(mockStorage.getProcessedTransaction(txHash2)); // Ensure other hashes are unaffected
+        assertFalse(mockStorage.getProcessedTransaction(txHash2)); 
 
         mockStorage.setProcessedTransaction(txHash2, true);
         assertTrue(mockStorage.getProcessedTransaction(txHash2));

@@ -3,11 +3,6 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-/**
- * @title AutomationGuard
- * @notice Access control for automation services
- * @dev Uses OpenZeppelin's AccessControl for role-based permissions
- */
 abstract contract AutomationGuard is AccessControl {
     bytes32 public constant AUTOMATION_ROLE = keccak256("AUTOMATION_ROLE");
 
@@ -20,9 +15,6 @@ abstract contract AutomationGuard is AccessControl {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    /**
-     * @notice Modifier to restrict functions to automation services
-     */
     modifier onlyAutomation() {
         if (!hasRole(AUTOMATION_ROLE, msg.sender)) {
             revert UnauthorizedAutomation();
@@ -30,17 +22,11 @@ abstract contract AutomationGuard is AccessControl {
         _;
     }
 
-    /**
-     * @notice Grant automation role to an address
-     */
     function grantAutomationRole(address service) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _grantRole(AUTOMATION_ROLE, service);
         emit AutomationServiceGranted(service);
     }
 
-    /**
-     * @notice Revoke automation role from an address
-     */
     function revokeAutomationRole(address service) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _revokeRole(AUTOMATION_ROLE, service);
         emit AutomationServiceRevoked(service);
