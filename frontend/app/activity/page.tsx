@@ -227,7 +227,7 @@ export default function ActivityPage() {
               {/* Filters Row */}
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 {/* Status Filter Dropdown */}
-                <div className="flex-1 sm:flex-none sm:min-w-[140px]">
+                <div className="flex-1 sm:flex-none sm:min-w-35">
                   <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
                     <SelectTrigger className="w-full">
                       <div className="flex items-center gap-2">
@@ -262,7 +262,7 @@ export default function ActivityPage() {
                 </div>
 
                 {/* Type Filter Dropdown */}
-                <div className="flex-1 sm:flex-none sm:min-w-[140px]">
+                <div className="flex-1 sm:flex-none sm:min-w-35">
                   <Select value={typeFilter} onValueChange={(value: any) => setTypeFilter(value)}>
                     <SelectTrigger className="w-full">
                       <div className="flex items-center gap-2">

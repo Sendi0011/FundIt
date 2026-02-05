@@ -25,7 +25,7 @@ export function TotalSavedCard({ totalAmount, monthlyIncrease, onRefresh, isRefr
   }
 
   return (
-    <Card className="bg-gradient-to-br from-primary via-primary to-secondary relative overflow-hidden">
+    <Card className="bg-linear-to-br from-primary via-primary to-secondary relative overflow-hidden">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="text-primary-foreground">Total Saved</CardTitle>
         <div className="flex items-center gap-2">
